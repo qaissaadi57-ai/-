@@ -269,7 +269,7 @@ export default function App() {
             }`}
           >
             <Building2 className="w-5 h-5 text-amber-300" />
-            <span>شيت المحطات</span>
+            <span>المحطات</span>
             <span className={`px-2 py-0.5 rounded-full text-[11px] font-black ${
               activeSheet === 'stations' ? 'bg-white/20 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
             }`}>
@@ -289,7 +289,7 @@ export default function App() {
             }`}
           >
             <Flame className="w-5 h-5 text-orange-400" />
-            <span>شيت وكلاء الغاز</span>
+            <span>وكلاء الغاز</span>
             <span className={`px-2 py-0.5 rounded-full text-[11px] font-black ${
               activeSheet === 'agents' ? 'bg-white/20 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
             }`}>

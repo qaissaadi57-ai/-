@@ -145,7 +145,7 @@ export const RecordTable: React.FC<RecordTableProps> = ({
           });
 
           onImportRecords(imported);
-          alert(lang === 'ar' ? `تم استيراد ${imported.length} سجل بنجاح إلى شيت ${activeSheet === 'stations' ? 'المحطات' : 'وكلاء الغاز'}!` : `Successfully imported ${imported.length} records!`);
+          alert(lang === 'ar' ? `تم استيراد ${imported.length} سجل بنجاح إلى ${activeSheet === 'stations' ? 'قسم المحطات' : 'قسم وكلاء الغاز'}!` : `Successfully imported ${imported.length} records!`);
         }
       } catch (err) {
         console.error('Failed to import Excel file', err);
@@ -190,7 +190,7 @@ export const RecordTable: React.FC<RecordTableProps> = ({
               </span>
             </h3>
             <p className="text-xs text-slate-500 dark:text-slate-400">
-              {lang === 'ar' ? 'استعراض سجلات الشيت والفلترة والتصدير إلى Excel' : 'Review stored sheet records, filter, and export'}
+              {lang === 'ar' ? 'استعراض السجلات والفلترة والتصدير إلى Excel' : 'Review stored records, filter, and export'}
             </p>
           </div>
         </div>
@@ -443,7 +443,7 @@ export const RecordTable: React.FC<RecordTableProps> = ({
             ) : (
               <tr>
                 <td colSpan={fields.length + 2} className="px-4 py-8 text-center text-slate-400">
-                  {lang === 'ar' ? 'لا توجد سجلات مطابقة في هذا الشيت' : 'No matching records in sheet'}
+                  {lang === 'ar' ? 'لا توجد سجلات مطابقة' : 'No matching records'}
                 </td>
               </tr>
             )}
