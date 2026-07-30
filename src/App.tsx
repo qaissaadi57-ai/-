@@ -31,34 +31,57 @@ export default function App() {
   const [isDark, setIsDark] = useState(false);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [isInstalled, setIsInstalled] = useState<boolean>(false);
 
-  // Capture PWA beforeinstallprompt event
+  // Capture PWA beforeinstallprompt and appinstalled events
   useEffect(() => {
+    // Check if app is already running in standalone display mode
+    const isStandalone =
+      window.matchMedia('(display-mode: standalone)').matches ||
+      (navigator as any).standalone === true;
+
+    if (isStandalone) {
+      setIsInstalled(true);
+    }
+
     const handleBeforeInstallPrompt = (e: Event) => {
+      // Prevent Chrome automatic prompt banner and store event for custom trigger
       e.preventDefault();
       setDeferredPrompt(e);
     };
+
+    const handleAppInstalled = () => {
+      setDeferredPrompt(null);
+      setIsInstalled(true);
+    };
+
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    window.addEventListener('appinstalled', handleAppInstalled);
 
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      window.removeEventListener('appinstalled', handleAppInstalled);
     };
   }, []);
 
   const handleInstallPWA = async () => {
-    if (deferredPrompt) {
-      deferredPrompt.prompt();
+    if (!deferredPrompt) return;
+    try {
+      // Trigger Chrome's native install prompt window
+      await deferredPrompt.prompt();
+      // Wait for user choice response
       const choiceResult = await deferredPrompt.userChoice;
-      if (choiceResult.outcome === 'accepted') {
+      if (choiceResult && choiceResult.outcome === 'accepted') {
         setDeferredPrompt(null);
-        showTempMessage(lang === 'ar' ? 'تم بدء تثبيت التطبيق بنجاح!' : 'PWA Installation Started!');
+        setIsInstalled(true);
+        showTempMessage(lang === 'ar' ? 'تم تثبيت التطبيق بنجاح!' : 'PWA App Installed Successfully!');
+      } else {
+        // User dismissed the prompt, clear stored prompt as it cannot be reused
+        setDeferredPrompt(null);
       }
-    } else {
-      alert(
-        lang === 'ar'
-          ? 'لتثبيت التطبيق على جهازك:\n1. افتح القائمة (⋮) في متصفح كروم.\n2. اختر "تثبيت التطبيق" (Install App).\n\nسيعمل التطبيق بشكل كامل وبدون إنترنت!'
-          : 'To install app:\n1. Open Chrome menu (⋮)\n2. Tap "Install App"\n\nWorks 100% offline!'
-      );
+    } catch (err) {
+      console.error('Error calling PWA install prompt:', err);
+      setDeferredPrompt(null);
     }
   };
 
@@ -196,27 +219,29 @@ export default function App() {
         onToggleDark={() => setIsDark((d) => !d)}
         onExportBackup={handleExportBackup}
         onImportBackup={handleImportBackup}
-        canInstallPWA={true}
+        canInstallPWA={!!deferredPrompt && !isInstalled}
         onInstallPWA={handleInstallPWA}
       />
 
-      {/* Prominent PWA Install Callout Banner */}
-      <div className="bg-gradient-to-r from-blue-900 via-indigo-900 to-slate-900 text-white px-4 py-2.5 text-xs font-bold flex flex-wrap items-center justify-between gap-2 shadow-md">
-        <div className="flex items-center gap-2">
-          <span className="p-1 bg-emerald-500 text-slate-950 rounded-lg font-black text-[10px]">PWA</span>
-          <span>
-            {lang === 'ar'
-              ? 'تطبيق محلي كامل يثبت على جهاز الأندرويد والتابلت ويعمل 100% بدون إنترنت'
-              : 'Standalone local PWA app works 100% offline on Android and tablet'}
-          </span>
+      {/* Prominent PWA Install Callout Banner - Shows ONLY when native beforeinstallprompt is ready */}
+      {deferredPrompt && !isInstalled && (
+        <div className="bg-gradient-to-r from-blue-900 via-indigo-900 to-slate-900 text-white px-4 py-2.5 text-xs font-bold flex flex-wrap items-center justify-between gap-2 shadow-md">
+          <div className="flex items-center gap-2">
+            <span className="p-1 bg-emerald-500 text-slate-950 rounded-lg font-black text-[10px]">PWA</span>
+            <span>
+              {lang === 'ar'
+                ? 'تطبيق محلي كامل يثبت على جهاز الأندرويد والتابلت ويعمل 100% بدون إنترنت'
+                : 'Standalone local PWA app works 100% offline on Android and tablet'}
+            </span>
+          </div>
+          <button
+            onClick={handleInstallPWA}
+            className="px-3.5 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs transition-transform active:scale-95 cursor-pointer shadow-sm"
+          >
+            {lang === 'ar' ? 'تثبيت التطبيق على الجهاز' : 'Install Standalone App'}
+          </button>
         </div>
-        <button
-          onClick={handleInstallPWA}
-          className="px-3.5 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs transition-transform active:scale-95 cursor-pointer shadow-sm"
-        >
-          {lang === 'ar' ? 'تثبيت التطبيق على الجهاز' : 'Install Standalone App'}
-        </button>
-      </div>
+      )}
 
       {/* Floating Temp Status Toast */}
       {statusMessage && (
